@@ -55,6 +55,9 @@ class Boat
     #[ORM\Column(length: 255)]
     private ?string $power = null;
 
+    #[ORM\ManyToOne(inversedBy: 'boats')]
+    private ?Port $port = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -212,6 +215,18 @@ class Boat
     public function setPower(string $power): static
     {
         $this->power = $power;
+
+        return $this;
+    }
+
+    public function getPort(): ?Port
+    {
+        return $this->port;
+    }
+
+    public function setPort(?Port $port): static
+    {
+        $this->port = $port;
 
         return $this;
     }
