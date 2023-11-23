@@ -2,22 +2,72 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use App\Controller\SelfInfoController;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use ApiPlatform\Metadata\Put;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
+        new Put(processor: UserPasswordHasher::class),
+        new Delete(security: "is_granted('ROLE_ADMIN') or object == user"),
+        new Get(
+            uriTemplate: '/users/{id}/info',
+            name: 'self_info',
+            controller: SelfInfoController::class,
+            normalizationContext: ['groups' => ['user:read']],
+            security: "is_granted('ROLE_USER')"
+        )
+    ],
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:create', 'user:update']],
+)]
+
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(processor: UserPasswordHasher::class),
+        new Get(normalizationContext: ['groups' => ['user:read', 'user:inspect']]),
+        new Get(
+            uriTemplate: '/users/{id}/info',
+            controller: SelfInfoController::class,
+            normalizationContext: ['groups' => ['user:read']],
+            security: "is_granted('ROLE_USER')",
+            name: 'self_info'
+        ),
+       new Delete(security: "is_granted('ROLE_ADMIN') or object == user"),
+    ],
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:create', 'user:update']],
+)]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
+#[ORM\Table(name: '`user`')]
+#[UniqueEntity('email')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
+    #[Groups(['user:read'])]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
@@ -30,30 +80,52 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create', 'user:update'])]
+    private ?string $plainPassword = null;
+
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $firstname = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_of_birth = null;
+    private ?\DateTimeInterface $dateOfBirth = null;
 
+    #[Assert\NotBlank]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
-    private ?string $phone_number = null;
+    private ?string $phoneNumber = null;
 
+    #[Assert\NotBlank]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $language = null;
 
+    #[Assert\NotBlank]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $avatar = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $licence = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read','user:update'])]
     #[ORM\Column(length: 255)]
     private ?string $insurance = null;
 
+    #[Assert\NotBlank(groups: ['user:create'])]
+    #[Groups(['user:create','user:read'])]
     #[ORM\Column]
     private ?bool $status = null;
 
@@ -140,6 +212,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
@@ -175,24 +259,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getDateOfBirth(): ?\DateTimeInterface
     {
-        return $this->date_of_birth;
+        return $this->dateOfBirth;
     }
 
-    public function setDateOfBirth(\DateTimeInterface $date_of_birth): static
+    public function setDateOfBirth(\DateTimeInterface $dateOfBirth): static
     {
-        $this->date_of_birth = $date_of_birth;
+        $this->dateOfBirth = $dateOfBirth;
 
         return $this;
     }
 
     public function getPhoneNumber(): ?string
     {
-        return $this->phone_number;
+        return $this->phoneNumber;
     }
 
-    public function setPhoneNumber(string $phone_number): static
+    public function setPhoneNumber(string $phoneNumber): static
     {
-        $this->phone_number = $phone_number;
+        $this->phoneNumber = $phoneNumber;
 
         return $this;
     }
