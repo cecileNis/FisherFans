@@ -18,21 +18,21 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(),
-        new Post(denormalizationContext: ['groups' => ['fishing_log:write']], security: 'is_granted("ROLE_USER")'),
+        new Post(denormalizationContext: ['groups' => ['fishing_log:write']]),
         new Get(
             uriTemplate: '/fishing_log/{id}',
-            security: 'is_granted("ROLE_USER")',
+            // security: 'is_granted("ROLE_USER")',
             normalizationContext: ['groups' => ['fishing_log:read']],
             name: 'get_fishing_log'
         ),
         new Put(
             uriTemplate: '/fishing_log/{id}',
-            security: 'is_granted("ROLE_USER")',
+            // security: 'is_granted("ROLE_USER")',
             normalizationContext: ['groups' => ['fishing_log:read']],
             denormalizationContext: ['groups' => ['fishing_log:update']],
             name: 'put_fishing_log'
         ),
-        new Delete(security: 'is_granted("ROLE_USER")'),
+        new Delete(),
     ],
     normalizationContext: ['groups' => ['fishing_log:read']],
     denormalizationContext: ['groups' => ['fishing_log:create', 'fishing_log:update']],
@@ -59,9 +59,10 @@ class FishingLog
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['fishing_log:read', 'fishing_log:write'])]
-    private ?\DateTimeInterface $date_of_fishing = null;
+    private ?\DateTimeInterface $dateOfFishing = null;
 
     #[ORM\Column]
+    #[Groups(['fishing_log:read', 'fishing_log:write'])]
     private ?bool $released = null;
 
     #[ORM\ManyToOne(inversedBy: 'fishingLogs')]
@@ -101,12 +102,12 @@ class FishingLog
 
     public function getDateOfFishing(): ?\DateTimeInterface
     {
-        return $this->date_of_fishing;
+        return $this->dateOfFishing;
     }
 
-    public function setDateOfFishing(\DateTimeInterface $date_of_fishing): static
+    public function setDateOfFishing(\DateTimeInterface $dateOfFishing): static
     {
-        $this->date_of_fishing = $date_of_fishing;
+        $this->dateOfFishing = $dateOfFishing;
 
         return $this;
     }
