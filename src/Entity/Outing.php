@@ -3,14 +3,42 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\OutingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: OutingRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(
+            denormalizationContext: ['groups' => ['outing:create']], security: "is_granted('ROLE_USER')"
+        ),
+        new Get(normalizationContext: ['groups' => ['outing:read', 'outing:inspect']]),
+        new Get(
+            uriTemplate: '/outing/{id}',
+            normalizationContext: ['groups' => ['outing:read']],
+            security: "is_granted('ROLE_USER')",
+            name: 'outing_info'
+        ),
+       new Delete(security: "is_granted('ROLE_ADMIN') or object.owner == user"),
+       new Put(
+            denormalizationContext: ['groups' => ['outing:create']], security: "object.owner == user",
+            uriTemplate: '/outings/{id}/update'
+        )
+    ],
+    normalizationContext: ['groups' => ['outing:read']],
+    denormalizationContext: ['groups' => ['outing:create', 'outing:update']],
+)]
+#[ORM\Table(name: '`outing`')]
 class Outing
 {
     #[ORM\Id]
@@ -18,33 +46,43 @@ class Outing
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(length: 255)]
-    private ?string $type_of_rate = null;
+    private ?string $typeOfRate = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_of_start = null;
+    private ?\DateTimeInterface $dateOfStart = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_of_end = null;
+    private ?\DateTimeInterface $dateOfEnd = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column]
-    private ?int $passager_seat = null;
+    private ?int $passagerSeat = null;
 
+    #[Groups(['outing:create', 'outing:read'])]
     #[ORM\Column]
     private ?int $rate = null;
 
+    #[Groups(['outing:read'])]
     #[ORM\ManyToOne(inversedBy: 'outings')]
     private ?User $owner = null;
 
+    #[Groups(['outing:read'])]
     #[ORM\OneToMany(mappedBy: 'outing', targetEntity: Reservation::class)]
     private Collection $reservations;
 
@@ -96,48 +134,48 @@ class Outing
 
     public function getTypeOfRate(): ?string
     {
-        return $this->type_of_rate;
+        return $this->typeOfRate;
     }
 
-    public function setTypeOfRate(string $type_of_rate): static
+    public function setTypeOfRate(string $typeOfRate): static
     {
-        $this->type_of_rate = $type_of_rate;
+        $this->typeOfRate = $typeOfRate;
 
         return $this;
     }
 
     public function getDateOfStart(): ?\DateTimeInterface
     {
-        return $this->date_of_start;
+        return $this->dateOfStart;
     }
 
-    public function setDateOfStart(\DateTimeInterface $date_of_start): static
+    public function setDateOfStart(\DateTimeInterface $dateOfStart): static
     {
-        $this->date_of_start = $date_of_start;
+        $this->dateOfStart = $dateOfStart;
 
         return $this;
     }
 
     public function getDateOfEnd(): ?\DateTimeInterface
     {
-        return $this->date_of_end;
+        return $this->dateOfEnd;
     }
 
-    public function setDateOfEnd(\DateTimeInterface $date_of_end): static
+    public function setDateOfEnd(\DateTimeInterface $dateOfEnd): static
     {
-        $this->date_of_end = $date_of_end;
+        $this->dateOfEnd = $dateOfEnd;
 
         return $this;
     }
 
     public function getPassagerSeat(): ?int
     {
-        return $this->passager_seat;
+        return $this->passagerSeat;
     }
 
-    public function setPassagerSeat(int $passager_seat): static
+    public function setPassagerSeat(int $passagerSeat): static
     {
-        $this->passager_seat = $passager_seat;
+        $this->passagerSeat = $passagerSeat;
 
         return $this;
     }
