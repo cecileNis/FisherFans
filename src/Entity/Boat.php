@@ -58,6 +58,9 @@ class Boat
     #[ORM\ManyToOne(inversedBy: 'boats')]
     private ?Port $port = null;
 
+    #[ORM\ManyToOne(inversedBy: 'boats')]
+    private ?User $owner = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -227,6 +230,18 @@ class Boat
     public function setPort(?Port $port): static
     {
         $this->port = $port;
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }

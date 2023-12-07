@@ -128,11 +128,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Outing::class)]
     private Collection $outings;
 
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Boat::class)]
+    private Collection $boats;
+
     public function __construct()
     {
         $this->fishingLogs = new ArrayCollection();
         $this->reservations = new ArrayCollection();
         $this->outings = new ArrayCollection();
+        $this->boats = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -433,6 +437,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($outing->getOwner() === $this) {
                 $outing->setOwner(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Boat>
+     */
+    public function getBoats(): Collection
+    {
+        return $this->boats;
+    }
+
+    public function addBoat(Boat $boat): static
+    {
+        if (!$this->boats->contains($boat)) {
+            $this->boats->add($boat);
+            $boat->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBoat(Boat $boat): static
+    {
+        if ($this->boats->removeElement($boat)) {
+            // set the owning side to null (unless already changed)
+            if ($boat->getOwner() === $this) {
+                $boat->setOwner(null);
             }
         }
 
