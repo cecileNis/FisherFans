@@ -6,26 +6,63 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\FishingLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Put;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: FishingLogRepository::class)]
-#[ApiResource]
+
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(denormalizationContext: ['groups' => ['fishing_log:write']]),
+        new Get(
+            uriTemplate: '/fishing_log/{id}',
+            // security: 'is_granted("ROLE_USER")',
+            normalizationContext: ['groups' => ['fishing_log:read']],
+            name: 'get_fishing_log'
+        ),
+        new Put(
+            uriTemplate: '/fishing_log/{id}',
+            // security: 'is_granted("ROLE_USER")',
+            normalizationContext: ['groups' => ['fishing_log:read']],
+            denormalizationContext: ['groups' => ['fishing_log:update']],
+            name: 'put_fishing_log'
+        ),
+        new Delete(),
+    ],
+    normalizationContext: ['groups' => ['fishing_log:read']],
+    denormalizationContext: ['groups' => ['fishing_log:create', 'fishing_log:update']],
+)]
+
+
+#[ORM\Entity(repositoryClass: FishRepository::class)]
+#[ORM\Table(name: 'fishing_log')]
 class FishingLog
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['fishing_log:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['fishing_log:read', 'fishing_log:write', 'fishing_log:update'])]
     private ?string $comment = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['fishing_log:read', 'fishing_log:write'])]
     private ?string $location = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_of_fishing = null;
+    #[Groups(['fishing_log:read', 'fishing_log:write'])]
+    private ?\DateTimeInterface $dateOfFishing = null;
 
     #[ORM\Column]
+    #[Groups(['fishing_log:read', 'fishing_log:write'])]
     private ?bool $released = null;
 
     #[ORM\ManyToOne(inversedBy: 'fishingLogs')]
@@ -65,12 +102,12 @@ class FishingLog
 
     public function getDateOfFishing(): ?\DateTimeInterface
     {
-        return $this->date_of_fishing;
+        return $this->dateOfFishing;
     }
 
-    public function setDateOfFishing(\DateTimeInterface $date_of_fishing): static
+    public function setDateOfFishing(\DateTimeInterface $dateOfFishing): static
     {
-        $this->date_of_fishing = $date_of_fishing;
+        $this->dateOfFishing = $dateOfFishing;
 
         return $this;
     }
