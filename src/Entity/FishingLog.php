@@ -21,13 +21,13 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Post(denormalizationContext: ['groups' => ['fishing_log:write']]),
         new Get(
             uriTemplate: '/fishing_log/{id}',
-            // security: 'is_granted("ROLE_USER")',
+            security: 'is_granted("ROLE_USER")',
             normalizationContext: ['groups' => ['fishing_log:read']],
             name: 'get_fishing_log'
         ),
         new Put(
             uriTemplate: '/fishing_log/{id}',
-            // security: 'is_granted("ROLE_USER")',
+            security: 'is_granted("ROLE_USER")',
             normalizationContext: ['groups' => ['fishing_log:read']],
             denormalizationContext: ['groups' => ['fishing_log:update']],
             name: 'put_fishing_log'
