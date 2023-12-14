@@ -4,37 +4,55 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\CompanyRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Post;
 
+#[ORM\Table(name: '`company`')]
+#[ApiResource(
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['company:read']]),
+        new Post(denormalizationContext: ['groups' => ['company:create']], security: "is_granted('ROLE_USER')"),
+        new Get(normalizationContext: ['groups' => ['company:read']]),
+    ],
+)]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[ApiResource]
 class Company
 {
     #[ORM\Id]
+    #[Groups(['company:read'])]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(groups: ['company:create'])]
+    #[Groups(['company:read', 'company:create'])]
     #[ORM\Column(length: 255)]
     private ?string $siret = null;
 
+    #[Assert\NotBlank(groups: ['company:create'])]
+    #[Groups(['company:read', 'company:create'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Assert\NotBlank(groups: ['company:create'])]
+    #[Groups(['company:read', 'company:create'])]
     #[ORM\Column(length: 255)]
-    private ?string $type_of_activity = null;
+    private ?string $typeOfActivity = null;
 
+    #[Assert\NotBlank(groups: ['company:create'])]
+    #[Groups(['company:read', 'company:create'])]
     #[ORM\Column(length: 255)]
     private ?string $rc = null;
 
-    #[ORM\OneToMany(mappedBy: 'company', targetEntity: User::class)]
-    private Collection $users;
+    #[ORM\OneToOne(mappedBy: 'company', cascade: ['persist', 'remove'])]
+    private ?User $user = null;
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -68,12 +86,12 @@ class Company
 
     public function getTypeOfActivity(): ?string
     {
-        return $this->type_of_activity;
+        return $this->typeOfActivity;
     }
 
-    public function setTypeOfActivity(string $type_of_activity): static
+    public function setTypeOfActivity(string $typeOfActivity): static
     {
-        $this->type_of_activity = $type_of_activity;
+        $this->typeOfActivity = $typeOfActivity;
 
         return $this;
     }
@@ -90,32 +108,24 @@ class Company
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUsers(): Collection
+    public function getUser(): ?User
     {
-        return $this->users;
+        return $this->user;
     }
 
-    public function addUser(User $user): static
+    public function setUser(?User $user): static
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
+        // unset the owning side of the relation if necessary
+        if ($user === null && $this->user !== null) {
+            $this->user->setCompany(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($user !== null && $user->getCompany() !== $this) {
             $user->setCompany($this);
         }
 
-        return $this;
-    }
-
-    public function removeUser(User $user): static
-    {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getCompany() === $this) {
-                $user->setCompany(null);
-            }
-        }
+        $this->user = $user;
 
         return $this;
     }

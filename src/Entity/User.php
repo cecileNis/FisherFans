@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Controller\SelfInfoController;
 use App\Repository\UserRepository;
@@ -16,7 +18,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ApiPlatform\Metadata\Put;
 use App\State\UserPasswordHasher;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -24,8 +25,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiResource(
     operations: [
         new GetCollection(),
+        new Get(normalizationContext: ['groups' => ['user:read', 'user:inspect']]),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
-        new Put(processor: UserPasswordHasher::class),
+        new Patch(processor: UserPasswordHasher::class),
         new Delete(security: "is_granted('ROLE_ADMIN') or object == user"),
         new Get(
             uriTemplate: '/users/{id}/info',
@@ -112,12 +114,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $status = null;
 
-    #[ORM\ManyToOne(inversedBy: 'users')]
-    private ?Company $company = null;
-
-    #[ORM\ManyToOne(inversedBy: 'users')]
-    private ?Address $address = null;
-
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: FishingLog::class)]
     private Collection $fishingLogs;
 
@@ -129,6 +125,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Boat::class)]
     private Collection $boats;
+
+    #[Groups(['user:read'])]
+    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Address $address = null;
+
+    #[Groups(['user:read'])]
+    #[ORM\OneToOne(inversedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?Company $company = null;
 
     public function __construct()
     {
@@ -328,30 +332,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCompany(): ?Company
-    {
-        return $this->company;
-    }
-
-    public function setCompany(?Company $company): static
-    {
-        $this->company = $company;
-
-        return $this;
-    }
-
-    public function getAddress(): ?Address
-    {
-        return $this->address;
-    }
-
-    public function setAddress(?Address $address): static
-    {
-        $this->address = $address;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, FishingLog>
      */
@@ -468,6 +448,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $boat->setOwner(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAddress(): ?Address
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?Address $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getCompany(): ?Company
+    {
+        return $this->company;
+    }
+
+    public function setCompany(?Company $company): static
+    {
+        $this->company = $company;
 
         return $this;
     }

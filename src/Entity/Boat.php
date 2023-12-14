@@ -3,55 +3,101 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Post;
 use App\Repository\BoatRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
+#[ORM\Table(name: '`boat`')]
+#[ApiResource(
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['boat:read']]),
+        new Post(denormalizationContext: ['groups' => ['boat:create']], security: "is_granted('ROLE_USER')"),
+        new Get(normalizationContext: ['groups' => ['boat:read']]),
+        new Delete(security: "is_granted('ROLE_ADMIN') or object.owner == user"),
+        new Patch(
+            denormalizationContext: ['groups' => ['boat:update']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_USER') and object.owner == user"
+        )
+    ],
+)]
 #[ORM\Entity(repositoryClass: BoatRepository::class)]
-#[ApiResource]
 class Boat
 {
     #[ORM\Id]
+    #[Groups(['boat:read'])]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $description = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $marque = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $date_of_fabrication = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $licence = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $equipment = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column]
     private ?int $caution = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column]
     private ?int $capacity = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column]
     private ?int $number_of_beds = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $details = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $motorization = null;
 
+    #[Assert\NotBlank(groups: ['boat:create'])]
+    #[Groups(['boat:read', 'boat:create', 'boat:update'])]
     #[ORM\Column(length: 255)]
     private ?string $power = null;
 

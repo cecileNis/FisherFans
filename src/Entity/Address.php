@@ -4,37 +4,56 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\AddressRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Post;
 use Doctrine\ORM\Mapping as ORM;
+use App\Controller\PostAddressController;
+use Symfony\Component\Validator\Constraints as Assert;
 
+#[ORM\Table(name: '`address`')]
+#[ApiResource(
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['address:read']]),
+        new Post(denormalizationContext: ['groups' => ['address:create']], security: "is_granted('ROLE_USER')"),
+        new Get(normalizationContext: ['groups' => ['address:read']]),
+    ],
+)]
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
-#[ApiResource]
 class Address
 {
     #[ORM\Id]
+    #[Groups(['address:read'])]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Assert\NotBlank(groups: ['address:create'])]
+    #[Groups(['address:read', 'address:create'])]
     #[ORM\Column(length: 255)]
     private ?string $street = null;
 
+    #[Assert\NotBlank(groups: ['address:create'])]
+    #[Groups(['address:read', 'address:create'])]
     #[ORM\Column(length: 255)]
-    private ?string $number_of_street = null;
+    private ?string $numberOfStreet = null;
 
+    #[Assert\NotBlank(groups: ['address:create'])]
+    #[Groups(['address:read', 'address:create'])]
     #[ORM\Column(length: 255)]
     private ?string $zip = null;
 
+    #[Assert\NotBlank(groups: ['address:create'])]
+    #[Groups(['address:read', 'address:create'])]
     #[ORM\Column(length: 255)]
     private ?string $city = null;
 
-    #[ORM\OneToMany(mappedBy: 'Address', targetEntity: User::class)]
-    private Collection $users;
+    #[ORM\OneToOne(mappedBy: 'address', cascade: ['persist', 'remove'])]
+    private ?User $user = null;
 
     public function __construct()
     {
-        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -56,12 +75,12 @@ class Address
 
     public function getNumberOfStreet(): ?string
     {
-        return $this->number_of_street;
+        return $this->numberOfStreet;
     }
 
-    public function setNumberOfStreet(string $number_of_street): static
+    public function setNumberOfStreet(string $numberOfStreet): static
     {
-        $this->number_of_street = $number_of_street;
+        $this->numberOfStreet = $numberOfStreet;
 
         return $this;
     }
@@ -90,32 +109,24 @@ class Address
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getUsers(): Collection
+    public function getUser(): ?User
     {
-        return $this->users;
+        return $this->user;
     }
 
-    public function addUser(User $user): static
+    public function setUser(?User $user): static
     {
-        if (!$this->users->contains($user)) {
-            $this->users->add($user);
+        // unset the owning side of the relation if necessary
+        if ($user === null && $this->user !== null) {
+            $this->user->setAddress(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($user !== null && $user->getAddress() !== $this) {
             $user->setAddress($this);
         }
 
-        return $this;
-    }
-
-    public function removeUser(User $user): static
-    {
-        if ($this->users->removeElement($user)) {
-            // set the owning side to null (unless already changed)
-            if ($user->getAddress() === $this) {
-                $user->setAddress(null);
-            }
-        }
+        $this->user = $user;
 
         return $this;
     }
