@@ -23,7 +23,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Get(normalizationContext: ['groups' => ['reservation:read', 'reservation:inspect']]),
         new Get(
-            uriTemplate: '/reservations/{id}',
+            uriTemplate: '/reservation/{id}',
             normalizationContext: ['groups' => ['reservation:read']],
             security: "is_granted('ROLE_USER')",
             name: 'reservation_info'
@@ -31,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
        new Delete(security: "is_granted('ROLE_ADMIN') or object.owner == user"),
        new Put(
             denormalizationContext: ['groups' => ['reservation:create']], security: "object.owner == user",
-            uriTemplate: '/reservations/{id}/update'
+            uriTemplate: '/reservation/{id}/update'
         )
     ],
     normalizationContext: ['groups' => ['reservation:read']],

@@ -73,6 +73,10 @@ class SetAutomaticFieldsToEntity implements EventSubscriberInterface
                 /** @var Outing $entity */
                 $entity->setOwner($user);
                 break;
+            case Boat::class:
+                /** @var Boat $entity */
+                $entity->setOwner($user);
+                break;
             case FishingLog::class:
                 /** @var FishingLog $entity */
                 $entity->setOwner($user);

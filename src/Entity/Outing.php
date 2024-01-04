@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\OutingRepository;
+use App\Controller\CreateOutingController;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -20,19 +21,20 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new GetCollection(),
         new Post(
-            denormalizationContext: ['groups' => ['outing:create']], security: "is_granted('ROLE_USER')"
+            controller: CreateOutingController::class,
+            denormalizationContext: ['groups' => ['outing:create']],
+            security: "is_granted('ROLE_USER')",
         ),
-        new Get(normalizationContext: ['groups' => ['outing:read', 'outing:inspect']]),
         new Get(
             uriTemplate: '/outing/{id}',
             normalizationContext: ['groups' => ['outing:read']],
             security: "is_granted('ROLE_USER')",
             name: 'outing_info'
         ),
-       new Delete(security: "is_granted('ROLE_ADMIN') or object.owner == user"),
+       new Delete(security: "is_granted('ROLE_ADMIN') or object.getOwner() == user"),
        new Put(
-            denormalizationContext: ['groups' => ['outing:create']], security: "object.owner == user",
-            uriTemplate: '/outings/{id}/update'
+            denormalizationContext: ['groups' => ['outing:create']], security: "object.getOwner() == user",
+            uriTemplate: '/outing/{id}/update'
         )
     ],
     normalizationContext: ['groups' => ['outing:read']],

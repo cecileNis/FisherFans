@@ -136,6 +136,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->reservations = new ArrayCollection();
         $this->outings = new ArrayCollection();
         $this->boats = new ArrayCollection();
+        $this->licence = "None";
     }
 
     public function getId(): ?int

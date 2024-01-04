@@ -39,7 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 
 
-#[ORM\Entity(repositoryClass: FishRepository::class)]
+#[ORM\Entity(repositoryClass: FishingLogRepository::class)]
 #[ORM\Table(name: 'fishing_log')]
 class FishingLog
 {

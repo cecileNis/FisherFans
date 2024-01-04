@@ -3,12 +3,57 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Controller\CreateBoatController;
+use App\Controller\SearchBoatByCoordsController;
+use App\Controller\SearchBoatFilterController;
 use App\Repository\BoatRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: BoatRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(
+            controller: CreateBoatController::class,
+            denormalizationContext: ['groups' => ['boat:create']], security: "is_granted('ROLE_USER')"
+        ),
+        new Get(
+            uriTemplate: '/boat/{id}',
+            normalizationContext: ['groups' => ['boat:read']],
+            security: "is_granted('ROLE_USER')",
+            name: 'boat_info'
+        ),
+        new GetCollection(
+            uriTemplate: '/boats/filter/{filter}/{value}',
+            controller: SearchBoatFilterController::class,
+            normalizationContext: ['groups' => ['boat:read']],
+            security: "is_granted('ROLE_USER')",
+            name: 'boat_filter'
+        ),
+        new GetCollection(
+            uriTemplate: '/boats/search/{x1}/{y1}/{x2}/{y2}',
+            controller: SearchBoatByCoordsController::class,
+            normalizationContext: ['groups' => ['boat:read']],
+            security: "is_granted('ROLE_USER')",
+            name: 'boat_search'
+        ),
+        new Delete(security: "is_granted('ROLE_ADMIN') or object.getOwner() == user"),
+        new Put(
+            denormalizationContext: ['groups' => ['boat:create']], security: "object.getOwner() == user",
+            uriTemplate: '/boat/{id}/update'
+        )
+    ],
+    normalizationContext: ['groups' => ['boat:read']],
+    denormalizationContext: ['groups' => ['boat:create', 'boat:update']],
+)]
+#[ORM\Table(name: '`boat`')]
 class Boat
 {
     #[ORM\Id]
@@ -17,42 +62,55 @@ class Boat
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $marque = null;
+    #[Groups(['boat:create', 'boat:read'])]
+    private ?string $brand = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $date_of_fabrication = null;
+    #[ORM\Column]
+    #[Groups(['boat:create', 'boat:read'])]
+    private ?int $yearOfFabrication = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $licence = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $type = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $equipment = null;
 
     #[ORM\Column]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?int $caution = null;
 
     #[ORM\Column]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?int $capacity = null;
 
     #[ORM\Column]
-    private ?int $number_of_beds = null;
+    #[Groups(['boat:create', 'boat:read'])]
+    private ?int $numberOfBeds = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $details = null;
+    #[Groups(['boat:create', 'boat:read'])]
+    private ?string $coords = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $motorization = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['boat:create', 'boat:read'])]
     private ?string $power = null;
 
     #[ORM\ManyToOne(inversedBy: 'boats')]
@@ -90,26 +148,26 @@ class Boat
         return $this;
     }
 
-    public function getMarque(): ?string
+    public function getBrand(): ?string
     {
-        return $this->marque;
+        return $this->brand;
     }
 
-    public function setMarque(string $marque): static
+    public function setBrand(string $brand): static
     {
-        $this->marque = $marque;
+        $this->brand = $brand;
 
         return $this;
     }
 
-    public function getDateOfFabrication(): ?\DateTimeInterface
+    public function getYearOfFabrication(): ?int
     {
-        return $this->date_of_fabrication;
+        return $this->yearOfFabrication;
     }
 
-    public function setDateOfFabrication(\DateTimeInterface $date_of_fabrication): static
+    public function setYearOfFabrication(int $yearOfFabrication): static
     {
-        $this->date_of_fabrication = $date_of_fabrication;
+        $this->yearOfFabrication = $yearOfFabrication;
 
         return $this;
     }
@@ -176,24 +234,24 @@ class Boat
 
     public function getNumberOfBeds(): ?int
     {
-        return $this->number_of_beds;
+        return $this->numberOfBeds;
     }
 
-    public function setNumberOfBeds(int $number_of_beds): static
+    public function setNumberOfBeds(int $numberOfBeds): static
     {
-        $this->number_of_beds = $number_of_beds;
+        $this->numberOfBeds = $numberOfBeds;
 
         return $this;
     }
 
-    public function getDetails(): ?string
+    public function getCoords(): ?string
     {
-        return $this->details;
+        return $this->coords;
     }
 
-    public function setDetails(string $details): static
+    public function setCoords(string $coords): static
     {
-        $this->details = $details;
+        $this->coords = $coords;
 
         return $this;
     }
