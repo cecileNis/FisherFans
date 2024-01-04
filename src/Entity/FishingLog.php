@@ -32,7 +32,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['fishing_log:update']],
             name: 'put_fishing_log'
         ),
-        new Delete(),
+        new Delete(security: 'is_granted("ROLE_USER")'),
     ],
     normalizationContext: ['groups' => ['fishing_log:read']],
     denormalizationContext: ['groups' => ['fishing_log:create', 'fishing_log:update']],

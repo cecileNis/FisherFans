@@ -7,20 +7,43 @@ use App\Repository\PortRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Delete;
+use Symfony\Component\Serializer\Annotation\Groups;
+
+
+#[ApiResource(
+    operations: [
+        new GetCollection(),
+        new Post(denormalizationContext: ['groups' => ['port:create']], security: 'is_granted("ROLE_USER")'),
+        new Get(
+            security: 'is_granted("ROLE_USER")',
+            normalizationContext: ['groups' => ['port:read']],
+        ),
+        new Delete(security: 'is_granted("ROLE_USER")'),
+    ],
+    normalizationContext: ['groups' => ['port:read']],
+    denormalizationContext: ['groups' => ['port:create', 'port:update']],
+)]
 
 #[ORM\Entity(repositoryClass: PortRepository::class)]
-#[ApiResource]
+#[ORM\Table(name: 'port')]
 class Port
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['port:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['port:create', 'port:read', 'port:write'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['port:create', 'port:read', 'port:write'])]
     private ?string $country = null;
 
     #[ORM\OneToMany(mappedBy: 'port', targetEntity: Boat::class)]
