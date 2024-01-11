@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Boat;
+use App\Exceptions\NotValidCoordsException;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -12,6 +13,10 @@ class SearchBoatByCoordsController extends AbstractController
 
   public function __invoke($x1, $y1, $x2, $y2)
   {
+    if (!is_numeric($x1) || !is_numeric($x2) || !is_numeric($y1) || !is_numeric($y2)) {
+      throw new NotValidCoordsException();
+    }
+
     $entityManager = $this->doctrine->getManager();
     $boatRepository = $entityManager->getRepository(Boat::class);
     $boats = $boatRepository->findAll();
